@@ -1,8 +1,7 @@
 class Subscriber
   def self.it_happened(message)
-    # sleep(10)
-    File.open('/Users/kris/out', 'w') do |file|
-      file.puts "pid: #{Process.gid}"
+    File.open('/tmp/shared', 'w') do |file|
+      file.puts "pid: #{Process.pid}"
     end
   end
 end

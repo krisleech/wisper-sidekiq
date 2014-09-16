@@ -8,5 +8,6 @@ group :development do
   gem 'rspec'
   gem "bundler", "~> 1.6"
   gem "rake"
+  gem 'rerun'
   gem 'pry'
 end

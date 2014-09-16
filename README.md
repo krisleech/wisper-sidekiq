@@ -1,29 +1,24 @@
 # Wisper::Sidekiq
 
-TODO: Write a gem description
+Provides Wisper with async event publishing using Sidekiq.
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-    gem 'wisper-sidekiq'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install wisper-sidekiq
+```ruby
+gem 'wisper-sidekiq'
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+publisher.subscribe(MyListener, broadcaster: Wisper::Sidekiq.new)
+
+publisher.run
+```
+
+Note that the listener must be a class (or module), not an object.
 
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/wisper-sidekiq/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+To run sidekiq `scripts/sidekiq`. This wraps sidekiq in rerun which will watch
+`specs/dummy_app` for changes.

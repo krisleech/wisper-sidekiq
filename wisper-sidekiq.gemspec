@@ -7,10 +7,10 @@ Gem::Specification.new do |spec|
   spec.name          = "wisper-sidekiq"
   spec.version       = Wisper::Sidekiq::VERSION
   spec.authors       = ["Kris Leech"]
-  spec.email         = ["kleech@housetrip.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
-  spec.homepage      = ""
+  spec.email         = ["kris.leech@gmail.com"]
+  spec.summary       = 'Async publishing for Wisper using Sidekiq'
+  spec.description   = 'Async publishing for Wisper using Sidekiq'
+  spec.homepage      = "https://github.com/krisleech/wisper-sidekiq"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

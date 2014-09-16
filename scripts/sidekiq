@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -e
+
+bundle exec rerun --dir spec/dummy_app/ -- bundle exec sidekiq -r ./spec/dummy_app/app.rb

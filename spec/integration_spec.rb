@@ -1,4 +1,4 @@
-require 'pry'
+require 'wisper/sidekiq'
 
 require_relative './dummy_app/app'
 require 'sidekiq/api'
@@ -24,22 +24,21 @@ RSpec.describe 'integration tests:' do
   before do
     sidekiq_queue.clear
     Sidekiq::RetrySet.new.clear
-    File.delete('/Users/kris/out') if File.exists?('/Users/kris/out')
+    File.delete('/tmp/shared') if File.exist?('/tmp/shared')
   end
 
-  it 'performs event in a different thread' do
-    expect(File.exists?('/Users/kris/out')).to be_falsey
-
-
+  it 'performs event in a different process' do
     publisher.subscribe(Subscriber, broadcaster: Wisper::SidekiqBroadcaster.new)
 
     publisher.run
 
-    sleep 2
+    Timeout.timeout(2) do
+      while !File.exist?('/tmp/shared')
+        sleep(0.1)
+      end
+    end
 
-    expect(File.exists?('/Users/kris/out')).to be_truthy
-
-    file = File.read('/Users/kris/out')
-    expect(file).to eq "pid: #{Process.gid}\n"
+    shared_content = File.read('/tmp/shared')
+    expect(shared_content).not_to eq "pid: #{Process.pid}\n"
   end
 end
