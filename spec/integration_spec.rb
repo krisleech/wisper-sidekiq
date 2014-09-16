@@ -1,13 +1,7 @@
 require 'wisper/sidekiq'
 
-require_relative './dummy_app/app'
+require_relative 'dummy_app/app'
 require 'sidekiq/api'
-
-class Wisper::SidekiqBroadcaster
-  def broadcast(subscriber, publisher, event, args)
-    subscriber.delay.public_send(event, args)
-  end
-end
 
 RSpec.describe 'integration tests:' do
   let(:sidekiq_queue) { Sidekiq::Queue.new }
