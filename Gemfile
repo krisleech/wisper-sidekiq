@@ -2,12 +2,12 @@ source 'https://rubygems.org'
 
 gemspec
 
+# TODO: move to gemspec when branch released
 gem 'wisper', github: 'krisleech/wisper', branch: 'invoker-adapter'
 
-group :development do
-  gem 'rspec'
-  gem "bundler", "~> 1.6"
-  gem "rake"
-  gem 'rerun'
-  gem 'pry'
-end
+gem "bundler", "~> 1.6"
+gem "rake"
+gem 'rspec'
+gem 'rerun'
+gem 'pry'
+gem 'coveralls', require: false
