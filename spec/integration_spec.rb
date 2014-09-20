@@ -4,7 +4,6 @@ require_relative 'dummy_app/app'
 require 'sidekiq/api'
 
 RSpec.describe 'integration tests:' do
-  let(:sidekiq_queue) { Sidekiq::Queue.new }
   let(:publisher) do
     Class.new do
       include Wisper::Publisher
@@ -16,13 +15,13 @@ RSpec.describe 'integration tests:' do
   end
 
   before do
-    sidekiq_queue.clear
+    Sidekiq::Queue.new
     Sidekiq::RetrySet.new.clear
     File.delete('/tmp/shared') if File.exist?('/tmp/shared')
   end
 
   it 'performs event in a different process' do
-    publisher.subscribe(Subscriber, broadcaster: Wisper::SidekiqBroadcaster.new)
+    publisher.subscribe(Subscriber, async: Wisper::SidekiqBroadcaster.new)
 
     publisher.run
 
