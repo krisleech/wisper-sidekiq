@@ -6,7 +6,7 @@ require 'wisper/sidekiq/version'
 module Wisper
   class SidekiqBroadcaster
     def broadcast(subscriber, publisher, event, args)
-      subscriber.delay.public_send(event, args)
+      subscriber.delay.public_send(event, *args)
     end
 
     def self.register

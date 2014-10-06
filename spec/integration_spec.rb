@@ -15,7 +15,7 @@ RSpec.describe 'integration tests:' do
   end
 
   before do
-    Sidekiq::Queue.new
+    Sidekiq::Queue.new.clear
     Sidekiq::RetrySet.new.clear
     File.delete('/tmp/shared') if File.exist?('/tmp/shared')
   end
