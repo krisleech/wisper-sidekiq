@@ -1,4 +1,7 @@
 language: ruby
+before_script:
+  - bundle exec sidekiq -d -r ./spec/dummy_app/app.rb -L /tmp/sidekiq.log
+  - sleep 1
 script: rspec spec
 bundler_args: --without=extras
 services:
