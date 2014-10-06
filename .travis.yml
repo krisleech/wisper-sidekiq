@@ -1,5 +1,6 @@
 language: ruby
 script: rspec spec
+bundler_args: --without=extras
 rvm:
   - '2.0.0'
   - '2.1.2'

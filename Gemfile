@@ -5,6 +5,9 @@ gemspec
 gem 'bundler'
 gem 'rake'
 gem 'rspec'
-gem 'rerun'
-gem 'pry'
 gem 'coveralls', require: false
+
+group :extras do
+  gem 'rerun'
+  gem 'pry'
+end
