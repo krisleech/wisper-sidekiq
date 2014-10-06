@@ -1,10 +1,14 @@
 language: ruby
 script: rspec spec
 bundler_args: --without=extras
-rvm:
-  - '2.0.0'
-  - '2.1.2'
-  - jruby
-  - rbx-2
 services:
   - redis-server
+rvm:
+  - jruby-19mode
+  - rbx-2
+  - 2.0.0
+  - 2.1
+  - 2.2
+matrix:
+  allow_failures:
+    - rvm: rbx-2

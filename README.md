@@ -30,6 +30,14 @@ use its id instead.
 See the [Sidekiq best practices](https://github.com/mperham/sidekiq/wiki/Best-Practices)
 for more information.
 
+## Compatibility
+
+The same Ruby versions as Sidekiq are offically supported, but it should work
+with any 2.x syntax Ruby including JRuby and Rubinius.
+
+See the [build status](https://travis-ci.org/krisleech/wisper-sidekiq) for details.
+
+
 ## Contributing
 
 To run sidekiq use `scripts/sidekiq`. This wraps sidekiq in [rerun](https://github.com/alexch/rerun) 
