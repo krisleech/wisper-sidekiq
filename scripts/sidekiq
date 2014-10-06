@@ -2,4 +2,4 @@
 
 set -e
 
-bundle exec rerun --dir spec/dummy_app/ -- bundle exec sidekiq -r ./spec/dummy_app/app.rb
+bundle exec rerun --dir spec/dummy_app/ -- bundle exec sidekiq -r ./spec/dummy_app/app.rb -L ./spec/dummy_app/logs/sidekiq.log
