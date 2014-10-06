@@ -1,8 +1,7 @@
 # Wisper::Sidekiq
 
-NOTE: This gem will not work until Wisper > 1.4.0 is released.
-
-Provides Wisper with async event publishing using Sidekiq.
+Provides [Wisper](https://github.com/krisleech/wisper) with asynchronous event
+publishing using [Sidekiq](https://github.com/mperham/sidekiq).
 
 [![Gem Version](https://badge.fury.io/rb/wisper-sidekiq.png)](http://badge.fury.io/rb/wisper-sidekiq)
 [![Code Climate](https://codeclimate.com/github/krisleech/wisper-sidekiq.png)](https://codeclimate.com/github/krisleech/wisper-sidekiq)
@@ -21,12 +20,11 @@ gem 'wisper-sidekiq'
 publisher.subscribe(MyListener, async: true)
 ```
 
-Note that the listener must be a class (or module), not an object. This is
-because Sidekiq can not reconstruct the state of an object. However a class is
-easily reconstructed.
+The listener must be a class (or module), not an object. This is because Sidekiq
+can not reconstruct the state of an object. However a class is easily reconstructed.
 
 When publshing events the arguments must be simple as they need to be
-serialized. For example instead of sending an ActiveRecord model as an argument
+serialized. For example instead of sending an `ActiveRecord` model as an argument
 use its id instead.
 
 See the [Sidekiq best practices](https://github.com/mperham/sidekiq/wiki/Best-Practices)
@@ -34,5 +32,5 @@ for more information.
 
 ## Contributing
 
-To run sidekiq `scripts/sidekiq`. This wraps sidekiq in rerun which will watch
-`specs/dummy_app` for changes.
+To run sidekiq use `scripts/sidekiq`. This wraps sidekiq in [rerun](https://github.com/alexch/rerun) 
+which will restart sidekiq when `specs/dummy_app` changes.
