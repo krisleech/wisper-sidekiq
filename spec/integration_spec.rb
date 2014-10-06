@@ -25,7 +25,7 @@ RSpec.describe 'integration tests:' do
 
     publisher.run
 
-    Timeout.timeout(2) do
+    Timeout.timeout(10) do
       while !File.exist?('/tmp/shared')
         sleep(0.1)
       end
