@@ -1,6 +1,10 @@
 require 'coveralls'
 Coveralls.wear!
 
+if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
+  YAML::ENGINE.yamler = 'psych'
+end
+
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
