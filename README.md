@@ -23,6 +23,15 @@ publisher.subscribe(MyListener, async: true)
 The listener must be a class (or module), not an object. This is because Sidekiq
 can not reconstruct the state of an object. However a class is easily reconstructed.
 
+Additionally, you should also ensure that your methods used to handle events under `MyListener` are all declared as class methods:
+
+```ruby
+class MyListener
+  def self.event_name
+  end
+end
+```
+
 When publshing events the arguments must be simple as they need to be
 serialized. For example instead of sending an `ActiveRecord` model as an argument
 use its id instead.
