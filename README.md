@@ -32,6 +32,14 @@ class MyListener
 end
 ```
 
+## Configuration
+
+```ruby
+Wisper::Sidekiq.configure do |config|
+  config.sidekiq_options = { retry: 5, queue: :my_queue, backtrace: true }
+end
+```
+
 When publshing events the arguments must be simple as they need to be
 serialized. For example instead of sending an `ActiveRecord` model as an argument
 use its id instead.
