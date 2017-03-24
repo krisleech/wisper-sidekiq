@@ -39,6 +39,14 @@ use its id instead.
 See the [Sidekiq best practices](https://github.com/mperham/sidekiq/wiki/Best-Practices)
 for more information.
 
+## Advanced options
+
+You can also customize queue name, retry value and other sidekiq options when registering the listener like the following:
+
+```ruby
+publisher.subscribe(MyListener, async: { queue: 'custom', retry: false })
+```
+
 ## Compatibility
 
 The same Ruby versions as Sidekiq are offically supported, but it should work
@@ -49,5 +57,5 @@ See the [build status](https://travis-ci.org/krisleech/wisper-sidekiq) for detai
 
 ## Contributing
 
-To run sidekiq use `scripts/sidekiq`. This wraps sidekiq in [rerun](https://github.com/alexch/rerun) 
+To run sidekiq use `scripts/sidekiq`. This wraps sidekiq in [rerun](https://github.com/alexch/rerun)
 which will restart sidekiq when `specs/dummy_app` changes.
