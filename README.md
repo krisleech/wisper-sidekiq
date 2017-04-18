@@ -54,6 +54,12 @@ with any 2.x syntax Ruby including JRuby and Rubinius.
 
 See the [build status](https://travis-ci.org/krisleech/wisper-sidekiq) for details.
 
+## Running Specs
+
+```
+scripts/sidekiq
+bundle exec rspec
+```
 
 ## Contributing
 
