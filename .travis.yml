@@ -1,6 +1,9 @@
 language: ruby
+before_install:
+  - gem update --system
+  - gem install bundler
 before_script:
-  - bundle exec sidekiq -r ./spec/dummy_app/app.rb -L /tmp/sidekiq.log &
+  - bundle exec sidekiq -r ./spec/dummy_app/app.rb -L /tmp/sidekiq.log -q default -q my_queue &
   - sleep 1
 script: rspec spec
 bundler_args: --without=extras
