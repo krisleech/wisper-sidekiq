@@ -8,7 +8,7 @@ module Wisper
     attr_reader :options
 
     def initialize(options = {})
-      @options = options
+      @options = options == true ? {} : options
     end
 
     def broadcast(subscriber, publisher, event, args)
