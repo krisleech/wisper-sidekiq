@@ -20,18 +20,39 @@ RSpec.describe 'integration tests:' do
     File.delete('/tmp/shared') if File.exist?('/tmp/shared')
   end
 
-  it 'performs event in a different process' do
-    publisher.subscribe(Subscriber, async: Wisper::SidekiqBroadcaster.new)
+  context 'when broadcaster is plain object' do
+    it 'performs event in a different process' do
+      publisher.subscribe(Subscriber, async: Wisper::SidekiqBroadcaster.new)
 
-    publisher.run
+      publisher.run
 
-    Timeout.timeout(10) do
-      while !File.exist?('/tmp/shared')
-        sleep(0.1)
+      Timeout.timeout(10) do
+        while !File.exist?('/tmp/shared')
+          sleep(0.1)
+        end
       end
-    end
 
-    shared_content = File.read('/tmp/shared')
-    expect(shared_content).not_to eq "pid: #{Process.pid}\n"
+      shared_content = File.read('/tmp/shared')
+      expect(shared_content).not_to eq "pid: #{Process.pid}\n"
+    end
+  end
+
+  context 'when broadcaster is async and passes options' do
+    it 'performs event in a different process' do
+      pending('Pending until wisper support for async options is published')
+
+      publisher.subscribe(Subscriber, async: { queue: 'default' })
+
+      publisher.run
+
+      Timeout.timeout(10) do
+        while !File.exist?('/tmp/shared')
+          sleep(0.1)
+        end
+      end
+
+      shared_content = File.read('/tmp/shared')
+      expect(shared_content).not_to eq "pid: #{Process.pid}\n"
+    end
   end
 end
