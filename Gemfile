@@ -11,5 +11,5 @@ gem 'psych', platforms: :rbx
 
 group :extras do
   gem 'rerun'
-  gem 'pry'
+  gem 'pry-byebug'
 end

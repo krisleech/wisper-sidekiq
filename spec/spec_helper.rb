@@ -1,5 +1,6 @@
 require 'coveralls'
 require 'simplecov'
+require 'pry' unless ENV['CI']
 
 SimpleCov.formatter = Coveralls::SimpleCov::Formatter
 

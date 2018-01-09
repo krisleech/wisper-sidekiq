@@ -25,6 +25,9 @@ RSpec.describe 'integration tests:' do
 
     publisher.run
 
+    # Note: failure here can indicate sidekiq is not running, run
+    # scripts/sidekiq
+    #
     Timeout.timeout(10) do
       while !File.exist?('/tmp/shared')
         sleep(0.1)
