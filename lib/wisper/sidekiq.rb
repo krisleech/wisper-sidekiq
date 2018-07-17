@@ -1,7 +1,6 @@
 require 'yaml'
 require 'wisper'
 require 'sidekiq'
-
 require 'wisper/sidekiq/version'
 
 module Wisper
@@ -20,15 +19,24 @@ module Wisper
       end
     end
 
-    def broadcast(subscriber, publisher, event, args)
-      Worker.perform_async(::YAML.dump([subscriber, event, args]))
-    end
-
     def self.register
       Wisper.configure do |config|
         config.broadcaster :sidekiq, SidekiqBroadcaster.new
         config.broadcaster :async,   SidekiqBroadcaster.new
       end
+    end
+
+    def broadcast(subscriber, publisher, event, args)
+      options = sidekiq_options(subscriber)
+      Worker.set(options).perform_async(::YAML.dump([subscriber, event, args]))
+    end
+
+    private
+
+    # Listener does not include any module, sidekiq_options are optional thus this ugly check
+    # This is fully backward compatible with current API so it's a fair tradeoff
+    def sidekiq_options(subscriber)
+      subscriber.respond_to?(:sidekiq_options) ? subscriber.sidekiq_options : {}
     end
   end
 end
