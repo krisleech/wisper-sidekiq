@@ -33,8 +33,6 @@ module Wisper
 
     private
 
-    # Listener does not include any module, sidekiq_options are optional thus this ugly check
-    # This is fully backward compatible with current API so it's a fair tradeoff
     def sidekiq_options(subscriber)
       subscriber.respond_to?(:sidekiq_options) ? subscriber.sidekiq_options : {}
     end
