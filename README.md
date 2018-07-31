@@ -39,6 +39,10 @@ use its id instead.
 See the [Sidekiq best practices](https://github.com/mperham/sidekiq/wiki/Best-Practices)
 for more information.
 
+### Passing down sidekiq options
+
+In order to define custom [sidekiq_options](https://github.com/mperham/sidekiq/wiki/Advanced-Options#workers) you can add `sidekiq_options` class method in your subscriber definition - those options will be passed to Sidekiq's `set` method just before scheduling the asynchronous worker.
+
 ## Compatibility
 
 The same Ruby versions as Sidekiq are offically supported, but it should work

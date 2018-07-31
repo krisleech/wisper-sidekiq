@@ -1,11 +1,16 @@
 language: ruby
+sudo: false
+cache: bundler
+script: bundle exec rspec
+bundler_args: --without=extras
 before_script:
   - bundle exec sidekiq -r ./spec/dummy_app/app.rb -L /tmp/sidekiq.log &
   - sleep 1
-script: rspec spec
-bundler_args: --without=extras
 services:
   - redis-server
 rvm:
-  - '2.4.0'
-  - jruby-9.1.6.0
+  - 2.2.10
+  - 2.3.7
+  - 2.4.4
+  - 2.5.1
+  - jruby-9.1.17.0
