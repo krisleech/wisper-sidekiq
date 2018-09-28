@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [1.1.0] - 28/Sept/2018
+
 - fixes: `NoMethodError: undefined method `set' for
   Wisper::SidekiqBroadcaster::Worker:Class` when using Sidekiq 2.x and 3.x.
 
