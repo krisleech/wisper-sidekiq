@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- fixes: allow for Sidekiq 5
+
 ## [1.1.0] - 28/Sept/2018
 
 - fixes: `NoMethodError: undefined method `set' for

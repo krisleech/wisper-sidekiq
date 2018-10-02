@@ -19,5 +19,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'wisper'
-  spec.add_dependency 'sidekiq', '~>4.0'
+  spec.add_dependency 'sidekiq', '>=4.1'
 end
