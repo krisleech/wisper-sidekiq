@@ -1,6 +1,8 @@
 ## [Unreleased]
 
-- fixes: allow for Sidekiq 5
+## [1.2.0]
+
+- fixes: gemspec does not allow sidekiq 5.x to be used
 
 ## [1.1.0] - 28/Sept/2018
 
