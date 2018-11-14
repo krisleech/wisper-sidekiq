@@ -32,7 +32,7 @@ class MyListener
 end
 ```
 
-When publshing events the arguments must be simple as they need to be
+When publishing events the arguments must be simple as they need to be
 serialized. For example instead of sending an `ActiveRecord` model as an argument
 use its id instead.
 
@@ -59,5 +59,5 @@ bundle exec rspec
 
 ## Contributing
 
-To run sidekiq use `scripts/sidekiq`. This wraps sidekiq in [rerun](https://github.com/alexch/rerun) 
+To run sidekiq use `scripts/sidekiq`. This wraps sidekiq in [rerun](https://github.com/alexch/rerun)
 which will restart sidekiq when `specs/dummy_app` changes.
