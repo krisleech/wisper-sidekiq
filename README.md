@@ -10,8 +10,16 @@ publishing using [Sidekiq](https://github.com/mperham/sidekiq).
 
 ## Installation
 
+### Sidekiq 5+
+
 ```ruby
-gem 'wisper-sidekiq'
+gem 'wisper-sidekiq', '~> 1.0'
+```
+
+### Sidekiq 4-
+
+```ruby
+gem 'wisper-sidekiq', '~> 0.0'
 ```
 
 ## Usage
