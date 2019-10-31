@@ -28,13 +28,33 @@ module Wisper
 
     def broadcast(subscriber, publisher, event, args)
       options = sidekiq_options(subscriber)
-      Worker.set(options).perform_async(::YAML.dump([subscriber, event, args]))
+      schedule_options = sidekiq_schedule_options(subscriber, event)
+
+      if delay_value = schedule_options[:delay]
+        Worker.set(options).perform_in(delay_value, ::YAML.dump([subscriber, event, args]))
+      else
+        Worker.set(options).perform_async(::YAML.dump([subscriber, event, args]))
+      end
     end
 
     private
 
     def sidekiq_options(subscriber)
       subscriber.respond_to?(:sidekiq_options) ? subscriber.sidekiq_options : {}
+    end
+
+    def sidekiq_schedule_options(subscriber, event)
+      return { } unless subscriber.respond_to?(:sidekiq_schedule_options)
+      return { } unless (options = subscriber.sidekiq_schedule_options).is_a?(Hash)
+
+      delay_option(options).merge( delay_option(options[event.to_sym]) )
+    end
+
+    def delay_option(options)
+      return {} unless options.is_a?(Hash)
+      return {} unless options.key?(:perform_in) || options.key?(:perform_at)
+
+      { delay: options[:perform_in] || options[:perform_at] }
     end
   end
 end
