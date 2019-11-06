@@ -30,11 +30,10 @@ module Wisper
       options = sidekiq_options(subscriber)
       schedule_options = sidekiq_schedule_options(subscriber, event)
 
-      if delay_value = schedule_options[:delay]
-        Worker.set(options).perform_in(delay_value, ::YAML.dump([subscriber, event, args]))
-      else
-        Worker.set(options).perform_async(::YAML.dump([subscriber, event, args]))
-      end
+      Worker.set(options).perform_in(
+        schedule_options.fetch(:delay, 0),
+        ::YAML.dump([subscriber, event, args])
+      )
     end
 
     private
@@ -44,14 +43,18 @@ module Wisper
     end
 
     def sidekiq_schedule_options(subscriber, event)
-      return { } unless subscriber.respond_to?(:sidekiq_schedule_options)
-      return { } unless (options = subscriber.sidekiq_schedule_options).is_a?(Hash)
+      return {} unless subscriber.respond_to?(:sidekiq_schedule_options)
 
-      delay_option(options).merge( delay_option(options[event.to_sym]) )
+      options = subscriber.sidekiq_schedule_options
+
+      if options.has_key?(event.to_sym)
+        delay_option(options[event.to_sym])
+      else
+        delay_option(options)
+      end
     end
 
     def delay_option(options)
-      return {} unless options.is_a?(Hash)
       return {} unless options.key?(:perform_in) || options.key?(:perform_at)
 
       { delay: options[:perform_in] || options[:perform_at] }

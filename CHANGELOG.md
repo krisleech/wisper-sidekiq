@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- Add the ability to pass `sidekiq_schedule_options` options in order to schedule jobs to be run in the future
+
 ## [1.2.0]
 
 - fixes: gemspec does not allow sidekiq 5.x to be used
