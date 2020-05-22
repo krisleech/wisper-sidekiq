@@ -55,7 +55,7 @@ In order to define custom [sidekiq_options](https://github.com/mperham/sidekiq/w
 
 In order be able to schedule jobs to be run in the future following [Scheduled Jobs](https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs) you can add `sidekiq_schedule_options` class method in your subscriber definition - those options will be passed to Sidekiq's `perform_in` method when the worker is called.
 
-This feature is not as powerfull as Sidekiq's API that allows you to set this on every job enqueue, in this case you're able to set this for the hole listener class like:
+This feature is not as powerful as Sidekiq's API that allows you to set this on every job enqueue, in this case you're able to set this for the whole listener class like:
 ```ruby
 class MyListener
   #...
@@ -83,7 +83,7 @@ class MyListener
   #...
 end
 ```
-In both cases there is also available the `perform_at` option.
+In both cases the `perform_at` option is also available.
 
 ## Compatibility
 
