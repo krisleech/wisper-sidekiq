@@ -33,7 +33,7 @@ module Wisper
 
       Worker.set(options).perform_in(
         schedule_options.fetch(:delay, 0),
-        ::YAML.dump([subscriber, event, args.push(kwargs)])
+        ::YAML.dump([subscriber, event, args, kwargs])
       )
     end
 
