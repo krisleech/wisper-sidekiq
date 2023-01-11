@@ -14,8 +14,7 @@ module Wisper
       include ::Sidekiq::Worker
 
       def perform(yml)
-        (subscriber, event, args) = ::YAML.unsafe_load(yml)
-        kwargs = args.extract_options!
+        (subscriber, event, args, kwargs) = ::YAML.unsafe_load(yml)
         subscriber.public_send(event, *args, **kwargs)
       end
     end
