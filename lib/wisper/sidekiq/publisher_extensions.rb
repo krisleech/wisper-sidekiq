@@ -1,7 +1,7 @@
 module Wisper
   module Sidekiq
     module PublisherExtensions
-      # Extension to automatically registered subscriber classes as safe
+      # Extension to automatically register subscriber classes as safe
       module SubscribeRegisterTypes
         def subscribe(listener, *args, **kargs, &block)
           Wisper::Sidekiq::Config.register_safe_types(listener)
