@@ -9,6 +9,7 @@ module Wisper
           Symbol,
           Time,
           Date,
+          DateTime,
         ].freeze
 
         def use_unsafe_yaml!
