@@ -13,6 +13,7 @@ RSpec.describe 'integration tests:' do
       end
     end.new
   end
+
   let(:shared_content) { File.read('/tmp/shared') }
 
   def ensure_sidekiq_was_running

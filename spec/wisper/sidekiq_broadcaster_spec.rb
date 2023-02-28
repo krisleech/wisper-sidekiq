@@ -1,11 +1,20 @@
 require 'wisper/sidekiq'
 
 RSpec.describe Wisper::SidekiqBroadcaster do
-  class PublisherUnderTest
+  class NormalPublisher
     include Wisper::Publisher
 
-    def run
-      broadcast(:it_happened)
+    def run(args = nil)
+      broadcast(:it_happened, args)
+    end
+  end
+
+  class AnotherPublisher
+    include Wisper::Publisher
+
+    def run(args = nil)
+      broadcast(:it_happened, args)
+      broadcast(:another_happened, args)
     end
   end
 
@@ -14,141 +23,132 @@ RSpec.describe Wisper::SidekiqBroadcaster do
     end
   end
 
-  class CustomizedSubscriberUnderTest
-    def self.it_happened
+  class CustomizedWithCustomQueue
+    def self.it_happened(*_)
     end
 
     def self.sidekiq_options
-      { queue: "my_queue" }
+      { queue: "custom_queue" }
     end
   end
 
-  class CustomizedScheduleInJobSubscriberUnderTest
-    def self.it_happened
+  class CustomizedSubscriberWithPerformInOptions
+    def self.it_happened(*_)
     end
 
-    def self.sidekiq_schedule_options
+    def self.sidekiq_options
       { perform_in: 5 }
     end
   end
 
-  class CustomizedEventScheduleInJobSubscriberUnderTest
-    def self.it_happened
+  class CustomizedSubscriberWithWrongSidekiqOptions
+    def self.it_happened(*_)
     end
 
-    def self.sidekiq_schedule_options
-      { it_happened: { perform_in: 5 } }
-    end
-  end
-
-  class CustomizedScheduleAtJobSubscriberUnderTest
-    def self.it_happened
-    end
-
-    def self.sidekiq_schedule_options
-      { perform_at: Time.now + 5 }
-    end
-  end
-
-  class CustomizedEventScheduleAtJobSubscriberUnderTest
-    def self.it_happened
-    end
-
-    def self.sidekiq_schedule_options
-      { it_happened: { perform_at: Time.now + 5 } }
-    end
-  end
-
-  class CustomizedBadScheduleInJobSubscriberUnderTest
-    def self.it_happened
-    end
-
-    def self.sidekiq_schedule_options
+    def self.sidekiq_options
       { perform_in: 'not a number', delay: 5 }
     end
   end
 
-  class CustomizedBadDefaultScheduleInWithEventScheduleAtJobSubscriberUnderTest
-    def self.it_happened
+  class CustomizedSubscriberWithDebounceOptions
+    def self.it_happened(*_)
+      'I was processed!'
     end
 
-    def self.sidekiq_schedule_options
-      { perform_in: 'not a number', delay: 5, it_happened: { perform_at: Time.now + 5 } }
+    def self.sidekiq_options
+      { queue: 'debounce_queue', debounce: { in_seconds: 15, keys: [:user_id] } }
     end
   end
 
-  let(:publisher) { PublisherUnderTest.new }
+  class CustomizedSubscriberWithNumberedArguments
+    def self.it_happened(*_)
+      'I was processed!'
+    end
 
-  before { Sidekiq::Testing.fake! }
+    def self.sidekiq_options
+      { queue: 'numbered_queue', debounce: { in_seconds: 15, keys: [0, 1] } }
+    end
+  end
+
+  class CustomizedSubscriberWithoutOverwriteEventName
+    def self.it_happened(*_)
+      'Processing this first'
+    end
+
+    def self.another_happened(*_)
+      'Processing this by last'
+    end
+
+    def self.sidekiq_options
+      { queue: 'custom_queue', debounce: { in_seconds: 15 } }
+    end
+  end
+
+  class CustomizedSubscriberWithOverwriteEventName
+    def self.it_happened(*_)
+      'Processing this first'
+    end
+
+    def self.another_happened(*_)
+      'Processing this by last'
+    end
+
+    def self.sidekiq_options
+      { queue: 'custom_queue', debounce: { in_seconds: 15, overwrite_event_name: 'my_custom_event' } }
+    end
+  end
+
+  let(:publisher) { NormalPublisher.new }
+  let(:another_publisher) { AnotherPublisher.new }
+
+  before do
+    Sidekiq::Queues.clear_all
+    Sidekiq::Testing.fake!
+  end
+
   after { Sidekiq::Testing.disable! }
 
   describe '#broadcast' do
-    it 'schedules a sidekiq job' do
+    it 'schedules a regular sidekiq job' do
       publisher.subscribe(RegularSubscriberUnderTest, async: described_class.new)
 
-      expect { publisher.run }
-        .to change(Sidekiq::Queues["default"], :size).by(1)
+      expect { publisher.run }.to change(Sidekiq::Queues["default"], :size).by(1)
+      expect { publisher.run }.not_to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }
     end
 
-    it 'schedules to run in some time a sidekiq job' do
-      publisher.subscribe(CustomizedScheduleInJobSubscriberUnderTest, async: described_class.new)
+    it 'schedules a job to run with perform_in options' do
+      publisher.subscribe(CustomizedSubscriberWithPerformInOptions, async: described_class.new)
 
-      # In order to look into Sidekiq::ScheduledSet we need to hit redis
-      expect { publisher.run }
-        .to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }.by(1)
-    end
-
-    it 'schedules to run in some time a sidekiq job for an event' do
-      publisher.subscribe(CustomizedEventScheduleInJobSubscriberUnderTest, async: described_class.new)
-
-      # In order to look into Sidekiq::ScheduledSet we need to hit redis
-      expect { publisher.run }
-        .to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }.by(1)
-    end
-
-    it 'schedules to run at some time a sidekiq job' do
-      publisher.subscribe(CustomizedEventScheduleAtJobSubscriberUnderTest, async: described_class.new)
-
-      # In order to look into Sidekiq::ScheduledSet we need to hit redis
-      expect { publisher.run }
-        .to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }.by(1)
-    end
-
-    it 'schedules to run at some time a sidekiq job for an event' do
-      publisher.subscribe(CustomizedEventScheduleInJobSubscriberUnderTest, async: described_class.new)
-
-      # In order to look into Sidekiq::ScheduledSet we need to hit redis
-      expect { publisher.run }
-        .to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }.by(1)
+      expect { publisher.run }.to change(Sidekiq::Queues["default"], :size).by(1)
+      expect { publisher.run }.to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }.by(1)
     end
 
     it 'can respect custom sidekiq_options' do
-      publisher.subscribe(CustomizedSubscriberUnderTest, async: described_class.new)
+      publisher.subscribe(CustomizedWithCustomQueue, async: described_class.new)
 
-      expect { publisher.run }
-        .to change(Sidekiq::Queues["my_queue"], :size).by(1)
+      expect { publisher.run }.to change(Sidekiq::Queues["custom_queue"], :size).by(1)
     end
 
-    it 'schedules a sidekiq job with bad sidekiq_schedule_options' do
-      publisher.subscribe(CustomizedBadScheduleInJobSubscriberUnderTest, async: described_class.new)
+    it 'passing wrong perform_in options should schedule a regular job' do
+      publisher.subscribe(CustomizedSubscriberWithWrongSidekiqOptions, async: described_class.new)
 
-      expect { publisher.run }
-        .to change(Sidekiq::Queues["default"], :size).by(1)
-      expect { publisher.run }
-        .not_to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }
+      expect { publisher.run }.to change(Sidekiq::Queues["default"], :size).by(1)
+      expect { publisher.run }.not_to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }
     end
 
-    it 'schedules a sidekiq job with bad sidekiq_schedule_options' do
-      publisher.subscribe(CustomizedBadDefaultScheduleInWithEventScheduleAtJobSubscriberUnderTest, async: described_class.new)
+    it 'passing debounce options should work as normal and not prevent multiple jobs to schedule' do
+      publisher.subscribe(CustomizedSubscriberWithDebounceOptions, async: described_class.new)
 
-      expect { publisher.run }
-        .to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }.by(1)
+      # Debouncing should not prevent jobs to schedule, only to be executed multiple times
+      expect { publisher.run }.to change { Sidekiq::Queues["debounce_queue"].select{|job| job.key?('at')}.size }.by(1)
+      expect { publisher.run }.to change { Sidekiq::Queues["debounce_queue"].select{|job| job.key?('at')}.size }.by(1)
+      expect { publisher.run }.to change { Sidekiq::Queues["debounce_queue"].select{|job| job.key?('at')}.size }.by(1)
     end
 
     context 'when provides subscriber with args' do
       let(:subscriber) { RegularSubscriberUnderTest }
       let(:event) { 'it_happened' }
-      let(:args) { [1,2,3] }
+      let(:args) { { user_id: 1, email: 'joe@doe.com' } }
 
       subject(:broadcast_event) { described_class.new.broadcast(subscriber, nil, event, args) }
 
@@ -156,6 +156,100 @@ RSpec.describe Wisper::SidekiqBroadcaster do
         expect(RegularSubscriberUnderTest).to receive(event).with(*args)
 
         Sidekiq::Testing.inline! { broadcast_event }
+      end
+    end
+
+    context 'when provides subscriber with debouncing capabilities' do
+      let(:subscriber) { CustomizedSubscriberWithDebounceOptions }
+      let(:event) { 'it_happened' }
+      let(:args) { { user_id: 1, email: 'joe@doe.com' } }
+      let(:different_args) { { user_id: 2, email: 'joe@doe.com' } }
+      let(:numbered_args) { [1, 23, user_id: 3, email: 'joe@doe.com'] }
+
+      before { Sidekiq::Queues.clear_all }
+
+      it 'when sidekiq starts processing should only move forward the last enqueued job' do
+        # First lets schedule a bunch of jobs with same information
+        publisher.subscribe(CustomizedSubscriberWithDebounceOptions, async: described_class.new)
+        publisher.run
+        expect(Sidekiq::Queues["debounce_queue"].count).to be(1)
+        publisher.run
+        expect(Sidekiq::Queues["debounce_queue"].count).to be(2)
+        publisher.run
+        expect(Sidekiq::Queues["debounce_queue"].count).to be(3)
+
+        # The test here is to check if ONLY the last job was processed and the others were debounced (returned nil)
+        Sidekiq::Testing.inline! do
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['debounce_queue'][0]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['debounce_queue'][1]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['debounce_queue'][2]['args'][0])).to eq('I was processed!')
+        end
+      end
+
+      it 'when enqueuing same jobs with different arguments should process all' do
+        # First lets schedule a bunch of jobs with same information
+        publisher.subscribe(CustomizedSubscriberWithDebounceOptions, async: described_class.new)
+        publisher.subscribe(CustomizedSubscriberWithDebounceOptions, async: described_class.new)
+        publisher.run(args)
+        expect(Sidekiq::Queues["debounce_queue"].count).to be(2)
+        publisher.run(different_args)
+        expect(Sidekiq::Queues["debounce_queue"].count).to be(4)
+
+        # The test here is to check if ONLY the last job was processed and the others were debounced (returned nil)
+        Sidekiq::Testing.inline! do
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['debounce_queue'][0]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['debounce_queue'][1]['args'][0])).to eq('I was processed!')
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['debounce_queue'][2]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['debounce_queue'][3]['args'][0])).to eq('I was processed!')
+        end
+      end
+
+      it 'when multiple publisher broadcast to same class and you do not use custom event name all subscriptions should be treated individually' do
+        # First lets schedule a bunch of jobs with same information
+        publisher.subscribe(CustomizedSubscriberWithoutOverwriteEventName, async: described_class.new)
+        publisher.subscribe(CustomizedSubscriberWithoutOverwriteEventName, async: described_class.new)
+        publisher.run(numbered_args)
+
+        another_publisher.subscribe(CustomizedSubscriberWithoutOverwriteEventName, async: described_class.new)
+        another_publisher.subscribe(CustomizedSubscriberWithoutOverwriteEventName, async: described_class.new)
+        another_publisher.run(numbered_args)
+
+        # another_publisher invokes two methods, that's why the counting is 6
+        expect(Sidekiq::Queues["custom_queue"].count).to be(6)
+
+        # The test here is to check if ONLY the last job was processed and the others were debounced (returned nil)
+        Sidekiq::Testing.inline! do
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][0]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][1]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][2]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][3]['args'][0])).to eq('Processing this first')
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][4]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][5]['args'][0])).to eq('Processing this by last')
+        end
+      end
+
+      it 'when multiple publisher broadcast to same class should debounce if using custom event name' do
+        # First lets schedule a bunch of jobs with same information
+        publisher.subscribe(CustomizedSubscriberWithOverwriteEventName, async: described_class.new)
+        publisher.subscribe(CustomizedSubscriberWithOverwriteEventName, async: described_class.new)
+        publisher.run(numbered_args)
+
+        another_publisher.subscribe(CustomizedSubscriberWithOverwriteEventName, async: described_class.new)
+        another_publisher.subscribe(CustomizedSubscriberWithOverwriteEventName, async: described_class.new)
+        another_publisher.run(numbered_args)
+
+        # another_publisher invokes two methods, that's why the counting is 6
+        expect(Sidekiq::Queues["custom_queue"].count).to be(6)
+
+        # The test here is to check if ONLY the last job was processed and the others were debounced (returned nil)
+        Sidekiq::Testing.inline! do
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][0]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][1]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][2]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][3]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][4]['args'][0])).to be_nil
+          expect(Wisper::SidekiqBroadcaster::Worker.new.perform(Sidekiq::Queues['custom_queue'][5]['args'][0])).to eq('Processing this by last')
+        end
       end
     end
   end
