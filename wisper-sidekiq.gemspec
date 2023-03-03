@@ -6,7 +6,7 @@ require 'wisper/sidekiq/version'
 Gem::Specification.new do |spec|
   spec.name          = "wisper-sidekiq"
   spec.version       = Wisper::Sidekiq::VERSION
-  spec.authors       = ["Kris Leech"]
+  spec.authors       = ["Kris Leech", "Joe Gaudet", "Patrick Muller"]
   spec.email         = ["kris.leech@gmail.com"]
   spec.summary       = 'Async publishing for Wisper using Sidekiq'
   spec.description   = 'Async publishing for Wisper using Sidekiq'
