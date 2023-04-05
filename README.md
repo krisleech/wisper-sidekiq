@@ -59,7 +59,7 @@ class MyListener
   def self.sidekiq_options
     # If you don't wanna debounce, but instead, just schedule to run in the future, use `perform_in` option
     { queue: 'my_custom_queue', retry: false, perform_in: 15 }
-    
+
     # in_seconds: the amount of time to debounce the events
     # expire_in_seconds: the amount of time for the key to stay present on redis cache
     # keys: you can define an array of attributes which debounce will look for on arguments to create an unique key to identify the debouncing jobs
@@ -75,12 +75,12 @@ This is a new feature that was implemented in order to prevent broadcasting mess
 for the same event. This is useful if, for some instance, your class is subscribed to many channels/events, and you don't
 want the job to process one time for each of the events.
 
-Under the hood Redis is used to store an unique key created based on the 
+Under the hood Redis is used to store an unique key created based on the
 
 ```ruby
 class MyListener
   def self.sidekiq_options
-    # in_seconds: the amount of time to debounce the events
+    # in_seconds: the amount of time to debounce the events. Could be a Proc (resulting in a String or Integer) or directly an integer/string.
     # expire_in_seconds: the amount of time for the key to stay present on redis cache
     # keys: you can define an array of attributes which debounce will look for on arguments to create an unique key to identify the debouncing jobs
     # NOTICE 1: If you pass a KEY that is not part of your arguments, you may cause inconsistent debouncing
@@ -126,7 +126,7 @@ end
 
 # Subscribe the same class to multiple events/publishers
 # If you use `overwrite_event_name` instead of the event name be `first_publisher`, `second_publisher`,
-# `third_publisher` it will be `my_custom_event` 
+# `third_publisher` it will be `my_custom_event`
 FirstPublisher.subscribe(MyListener.new)
 SecondPublisher.subscribe(MyListener.new)
 ThirdPublisher.subscribe(MyListener.new)
