@@ -66,11 +66,11 @@ module Wisper
         # By default, we expire the Redis unique identifier in 2 hours
         debounce_expire_in_seconds = debounce_options[:expire_in_seconds] || 60*60*2
 
-        debounce_in_seconds = debounce_options[:in_seconds].is_a?(Proc) ? debounce_options[:in_seconds].call : debounce_options[:in_seconds]
+        debounce_in_seconds = debounce_options[:in_seconds].respond_to?(:call) ? debounce_options[:in_seconds].call : debounce_options[:in_seconds]
 
         ::Sidekiq.redis do |redis|
           save_debounce_key_on_redis(redis, debounce_key, debounce_id, debounce_expire_in_seconds)
-          schedule_sidekiq_job(worker, debounce_options[:in_seconds], subscriber, event, args, debounce_key: debounce_key, debounce_id: debounce_id)
+          schedule_sidekiq_job(worker, debounce_in_seconds, subscriber, event, args, debounce_key: debounce_key, debounce_id: debounce_id)
         end
       # 2. If we don't then just schedule the job as normal
       else
