@@ -47,6 +47,36 @@ use its id instead.
 See the [Sidekiq best practices](https://github.com/mperham/sidekiq/wiki/Best-Practices)
 for more information.
 
+### YAML permitted classes
+
+The gem internally uses YAML serialization/deserialization to pass your event data and subscribers to a sidekiq worker through redis.
+
+By default, for security reasons, only a few basic classes like `String` or `Array` are permitted for deserialization.
+
+If you are using custom types as your event data, you might run into
+```
+Psych::DisallowedClass:
+   Tried to load unspecified class: MyEventData1
+```
+
+In that case, you can explicitly allow custom types using
+
+```ruby
+Wisper::Sidekiq.configure do |config|
+  config.register_safe_types(MyEventData1, MyEventData2)
+end
+```
+
+Alternatively, you can opt-in for unsafe YAML loading that allows the deserialization of all classes using
+
+```ruby
+Wisper::Sidekiq.configure do |config|
+  config.use_unsafe_yaml!
+end
+```
+
+Keep in mind that doing this can lead to [RCE vulneraibility](https://staaldraad.github.io/post/2019-03-02-universal-rce-ruby-yaml-load/) if an unauthorised actor gets the write access to your redis server.
+
 ### Passing down sidekiq options
 
 In order to define custom [sidekiq_options](https://github.com/mperham/sidekiq/wiki/Advanced-Options#workers) you can add `sidekiq_options` class method in your subscriber definition - those options will be passed to Sidekiq's `set` method just before scheduling the asynchronous worker.

@@ -10,6 +10,10 @@ before_script:
 services:
   - redis-server
 rvm:
-  - 2.5.7
-  - 2.6.5
+  - 2.5.9
+  - 2.6.10
+  - 2.7.7
+  - 3.0.5
+  - 3.1.2
+  - 3.2.0
   - jruby-9.2.9.0

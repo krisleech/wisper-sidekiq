@@ -2,6 +2,8 @@ require 'yaml'
 require 'wisper'
 require 'sidekiq'
 require 'wisper/sidekiq/version'
+require 'wisper/sidekiq/config'
+require 'wisper/sidekiq/publisher_extensions'
 
 module Wisper
 
@@ -14,7 +16,14 @@ module Wisper
       include ::Sidekiq::Worker
 
       def perform(yml)
-        (subscriber, event, args) = ::YAML.load(yml)
+        (subscriber, event, args) =
+          if Wisper::Sidekiq::Config.use_unsafe_yaml
+            unsafe_load_method = Psych::VERSION.to_i >= 4 ? :unsafe_load : :load
+            ::YAML.send(unsafe_load_method, yml)
+          else
+            ::YAML.safe_load(yml, permitted_classes: Wisper::Sidekiq::Config.safe_types, aliases: true)
+          end
+
         subscriber.public_send(event, *args)
       end
     end
