@@ -14,7 +14,12 @@ module Wisper
       include ::Sidekiq::Worker
 
       def perform(yml)
-        (subscriber, event, args) = ::YAML.load(yml)
+        (subscriber, event, args) =
+          if Psych::VERSION.to_i >= 4
+            ::YAML.unsafe_load(yml)
+          else
+            ::YAML.load(yml)
+          end
         subscriber.public_send(event, *args)
       end
     end
