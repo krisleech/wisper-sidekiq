@@ -16,6 +16,10 @@ module Wisper
           @use_unsafe_yaml = true
         end
 
+        def use_safe_yaml!
+          @use_unsafe_yaml = false
+        end
+
         def safe_types
           @safe_types ||= DEFAULT_SAFE_TYPES
         end

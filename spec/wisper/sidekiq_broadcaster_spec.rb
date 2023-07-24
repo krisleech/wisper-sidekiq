@@ -148,14 +148,61 @@ RSpec.describe Wisper::SidekiqBroadcaster do
     context 'when provides subscriber with args' do
       let(:subscriber) { RegularSubscriberUnderTest }
       let(:event) { 'it_happened' }
-      let(:args) { [1,2,3] }
 
       subject(:broadcast_event) { described_class.new.broadcast(subscriber, nil, event, args) }
 
-      it 'subscriber receives event with corrects args' do
-        expect(RegularSubscriberUnderTest).to receive(event).with(*args)
+      context 'with basic type args' do
+        let(:args) { [1,2,3] }
 
-        Sidekiq::Testing.inline! { broadcast_event }
+        it 'subscriber receives event with corrects args' do
+          expect(RegularSubscriberUnderTest).to receive(event).with(*args)
+
+          Sidekiq::Testing.inline! { broadcast_event }
+        end
+      end
+
+      context 'with custom type args' do
+        MyEventData = Struct.new(:a, :b)
+        let(:args) { [MyEventData.new(1,2)] }
+
+        context 'when the complex type is registered as safe' do
+          around do |example|
+            previous_safe_types = Wisper::Sidekiq::Config.safe_types
+            Wisper::Sidekiq::Config.register_safe_types(MyEventData)
+            example.run
+            Wisper::Sidekiq::Config.safe_types.replace(previous_safe_types)
+          end
+
+          it 'subscriber receives event with corrects args', :aggregate_failures do
+            expect(RegularSubscriberUnderTest).to receive(event).with(*args)
+
+            Sidekiq::Testing.inline! { broadcast_event }
+          end
+        end
+
+        context 'when unsafe yaml is enabled' do
+          around do |example|
+            Wisper::Sidekiq::Config.use_unsafe_yaml!
+            example.run
+            Wisper::Sidekiq::Config.use_safe_yaml!
+          end
+
+          it 'subscriber receives event with corrects args', :aggregate_failures do
+            expect(RegularSubscriberUnderTest).to receive(event).with(*args)
+
+            Sidekiq::Testing.inline! { broadcast_event }
+          end
+        end
+
+        context 'when the complex type is not registered as safe' do
+          it 'subscriber receives event with corrects args', :aggregate_failures do
+            expect(RegularSubscriberUnderTest).not_to receive(event).with(*args)
+
+            Sidekiq::Testing.inline! do
+              expect { broadcast_event }.to raise_error(Psych::DisallowedClass)
+            end
+          end
+        end
       end
     end
   end
