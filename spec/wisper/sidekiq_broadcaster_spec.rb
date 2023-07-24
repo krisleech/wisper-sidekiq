@@ -173,7 +173,7 @@ RSpec.describe Wisper::SidekiqBroadcaster do
             Wisper::Sidekiq::Config.safe_types.replace(previous_safe_types)
           end
 
-          it 'subscriber receives event with corrects args', :aggregate_failures do
+          it 'subscriber receives event with corrects args' do
             expect(RegularSubscriberUnderTest).to receive(event).with(*args)
 
             Sidekiq::Testing.inline! { broadcast_event }
@@ -187,7 +187,7 @@ RSpec.describe Wisper::SidekiqBroadcaster do
             Wisper::Sidekiq::Config.use_safe_yaml!
           end
 
-          it 'subscriber receives event with corrects args', :aggregate_failures do
+          it 'subscriber receives event with corrects args' do
             expect(RegularSubscriberUnderTest).to receive(event).with(*args)
 
             Sidekiq::Testing.inline! { broadcast_event }
@@ -195,8 +195,8 @@ RSpec.describe Wisper::SidekiqBroadcaster do
         end
 
         context 'when the complex type is not registered as safe' do
-          it 'subscriber receives event with corrects args', :aggregate_failures do
-            expect(RegularSubscriberUnderTest).not_to receive(event).with(*args)
+          it 'subscriber doesn\'t receive an event and and error is raised', :aggregate_failures do
+            expect(RegularSubscriberUnderTest).not_to receive(event)
 
             Sidekiq::Testing.inline! do
               expect { broadcast_event }.to raise_error(Psych::DisallowedClass)
