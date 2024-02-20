@@ -53,7 +53,7 @@ In order to define custom [sidekiq_options](https://github.com/mperham/sidekiq/w
 
 In order be able to schedule jobs to be run in the future following [Scheduled Jobs](https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs) you can add `sidekiq_options` class method in your subscriber definition - those options will be passed to Sidekiq's `perform_in` method when the worker is called.
 
-This feature is not as powerfull as Sidekiq's API that allows you to set this on every job enqueue, in this case you're able to set this for the hole listener class like:
+This feature is not as powerful as Sidekiq's API that allows you to set this on every job enqueue, in this case you're able to set this for the whole listener class like:
 ```ruby
 class MyListener
   def self.sidekiq_options
@@ -89,56 +89,7 @@ class MyListener
   end
 end
 ```
-
-The `keys` option allow you to use both named arguments or methods without named arguments.
-All you have to do is specify the number/position of the arguments.
-Let's say you have a method that receives `my_method(value1, value2)`.
-If you want to use `value2` as the debounce key, all you have to do is this:
-
-```ruby
-class MyListener
-  def self.sidekiq_options
-    # KEYS: can receive the name of the argument, or the position
-    # 1 here represents `value2`, since because arguments start with position 0
-    { debounce: { in_seconds: 15, keys: [1] } }
-  end
-
-  def perform(value1, value2)
-    # do something...
-  end
-end
-```
-
-The `overwrite_event_name` can be used to uniquely identify the whole class and it's events, no matter how many of
-them you have this class subscribed to, all of the events are gonna to have the same event name, which is used to
-compound the `debounce_key` used to identify the processed jobs and debounce them.
-
-```ruby
-class MyListener
-  def self.sidekiq_options
-    { debounce: { overwrite_event_name: 'my_custom_event' } }
-  end
-
-  def perform(value1, value2)
-    # do something...
-  end
-end
-
-# Subscribe the same class to multiple events/publishers
-# If you use `overwrite_event_name` instead of the event name be `first_publisher`, `second_publisher`,
-# `third_publisher` it will be `my_custom_event`
-FirstPublisher.subscribe(MyListener.new)
-SecondPublisher.subscribe(MyListener.new)
-ThirdPublisher.subscribe(MyListener.new)
-```
-
-Under the hood this will call the `perform_in` method.
-
-### Limitations
-
-It's not possible to use mixed arguments.
-If you have a class with a method like this `my_method(value1, email:)` and you wanna use both arguments
-as debounce keys, what you should do is `debounce: { keys: [0, 1] }`.
+In both cases the `perform_at` option is also available.
 
 ## Compatibility
 
