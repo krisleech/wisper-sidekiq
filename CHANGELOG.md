@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- **breaking change:** YAML.safe_load is used by default. Check https://github.com/krisleech/wisper-sidekiq#yaml-permitted-classes for more details
+
 ## [1.3.0] - 25/Nov/2019
 
 - Add the ability to pass `sidekiq_schedule_options` options in order to schedule jobs to be run in the future
