@@ -87,7 +87,7 @@ In both cases the `perform_at` option is also available.
 
 ## Compatibility
 
-The same Ruby versions as Sidekiq are offically supported, but it should work
+The same Ruby versions as Sidekiq are officially supported, but it should work
 with any 2.x syntax Ruby including JRuby and Rubinius.
 
 See the [build status](https://travis-ci.org/krisleech/wisper-sidekiq) for details.
