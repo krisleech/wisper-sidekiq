@@ -18,6 +18,6 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency 'wisper'
+  spec.add_dependency 'wisper', '>=3.0'
   spec.add_dependency 'sidekiq', '>=4.1'
 end
