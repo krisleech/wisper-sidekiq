@@ -41,17 +41,37 @@ module Wisper
     def broadcast(subscriber, publisher, event, *args, **kwargs)
       options = sidekiq_options(subscriber)
       schedule_options = sidekiq_schedule_options(subscriber, event)
+      client_class = options[:client_class] || options["client_class"]
 
-      Worker.set(options).perform_in(
-        schedule_options.fetch(:delay, 0),
-        ::YAML.dump([subscriber, event, args, kwargs])
-      )
+      with_client_class(client_class) do
+        Worker.set(options).perform_in(
+          schedule_options.fetch(:delay, 0),
+          ::YAML.dump([subscriber, event, args, kwargs])
+        )
+      end
     end
 
     private
 
     def sidekiq_options(subscriber)
       subscriber.respond_to?(:sidekiq_options) ? subscriber.sidekiq_options : {}
+    end
+
+    # Sidekiq::Job#build_client checks Thread.current[:sidekiq_client_class]
+    # before falling back to the worker's class-level sidekiq_options["client_class"].
+    # The internal Worker is shared across all subscribers, so per-subscriber
+    # client_class selection is routed through the thread-local instead of
+    # mutating the shared Worker class.
+    def with_client_class(client_class)
+      return yield if client_class.nil?
+
+      previous = Thread.current[:sidekiq_client_class]
+      Thread.current[:sidekiq_client_class] = client_class
+      begin
+        yield
+      ensure
+        Thread.current[:sidekiq_client_class] = previous
+      end
     end
 
     def sidekiq_schedule_options(subscriber, event)

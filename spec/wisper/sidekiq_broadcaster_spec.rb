@@ -77,6 +77,17 @@ RSpec.describe Wisper::SidekiqBroadcaster do
     end
   end
 
+  class RecordingClient
+    def self.pushed = (@pushed ||= [])
+    def initialize(pool: nil, config: nil); end
+    def push(item) = RecordingClient.pushed << item
+  end
+
+  class ClientClassSubscriberUnderTest
+    def self.it_happened; end
+    def self.sidekiq_options = { client_class: RecordingClient }
+  end
+
   let(:publisher) { PublisherUnderTest.new }
 
   before { Sidekiq::Testing.fake! }
@@ -143,6 +154,16 @@ RSpec.describe Wisper::SidekiqBroadcaster do
 
       expect { publisher.run }
         .to change { Sidekiq::Queues["default"].select{|job| job.key?('at')}.size }.by(1)
+    end
+
+    it 'routes the enqueue through a subscriber-declared client_class and restores the thread-local' do
+      RecordingClient.pushed.clear
+      publisher.subscribe(ClientClassSubscriberUnderTest, async: described_class.new)
+
+      publisher.run
+
+      expect(RecordingClient.pushed.size).to eq(1)
+      expect(Thread.current[:sidekiq_client_class]).to be_nil
     end
 
     context 'when provides subscriber with args' do

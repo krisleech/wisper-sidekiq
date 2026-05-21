@@ -2,6 +2,16 @@
 
 - **breaking change:** YAML.safe_load is used by default. Check https://github.com/krisleech/wisper-sidekiq#yaml-permitted-classes for more details
 
+## [1.5.0] - Kajabi fork
+
+- Honor `client_class:` declared in a subscriber's `sidekiq_options`. The
+  broadcaster now sets `Thread.current[:sidekiq_client_class]` around the
+  internal worker's enqueue so per-listener client classes (e.g.
+  `Sidekiq::TransactionAwareClient`) are picked up by Sidekiq's
+  `build_client`. Without this, the option was silently ignored because the
+  shared internal worker class supplied the only `sidekiq_options` Sidekiq
+  inspected.
+
 ## [1.3.0] - 25/Nov/2019
 
 - Add the ability to pass `sidekiq_schedule_options` options in order to schedule jobs to be run in the future
